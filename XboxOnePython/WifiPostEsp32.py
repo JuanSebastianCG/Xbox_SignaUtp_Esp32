@@ -1,18 +1,23 @@
-import aiohttp
-import asyncio
+import requests
 
 # Dirección IP y puerto del ESP32
 esp32_ip = "192.168.20.72"
 esp32_port = 80
 
-# Crear una instancia de sesión fuera de la función
-session = aiohttp.ClientSession()
 
-async def send_data_to_esp32(data_Input):
-    print("Enviando " + str(data_Input) + " al ESP32")
-    url = f"http://{esp32_ip}:{esp32_port}"
+def send_data_to_esp32(data_input):
+
+    data_to_send = {
+        "key": data_input[0],
+        "value": data_input[1] 
+                    }
     try:
-        # Realiza la solicitud POST sin esperar la respuesta
-        await session.post(url, json=data_Input)
-    except Exception as e:
-        print(f"Error al enviar solicitud POST al ESP32: {str(e)}")
+        response = requests.post(f'http://{esp32_ip}:{esp32_port}', data=data_to_send)
+        if response.status_code == 200:
+            print("Datos enviados correctamente: " + str(data_input))
+        else:
+            print("Error en la solicitud HTTP")
+    except requests.exceptions.ConnectionError:
+        print("Error de conexión")
+
+
