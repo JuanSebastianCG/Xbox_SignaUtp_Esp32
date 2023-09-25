@@ -4,7 +4,7 @@ import threading
 import queue
 
 # Número máximo de hilos permitidos
-max_threads = 10
+max_threads = 15
 
 # Cola para encolar los datos a enviar al ESP32
 data_queue = queue.Queue(max_threads)
@@ -13,7 +13,7 @@ def send_data_Server():
     while True:
         input = data_queue.get()
         if input is not None:
-            wpeUDP.send_data_to_esp32(input)
+            wpeUDP.send_data_to_esp32(input[0], input[1])
         data_queue.task_done()
 
 

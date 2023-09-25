@@ -14,12 +14,12 @@ def findBluetoothController():
 
 # Define los rangos para los ejes analógicos
 newLimits = {
-    15: (0, 2000),
-    16: (0, 2000),
-    17: (0, 2000),
-    18: (0, 2000),
-    19: (0, 255),
-    20: (0, 255),
+    15: (-32500,32500),
+    16: (-32500,32500),
+    17: (-32500,32500),
+    18: (-32500,32500),
+    19: (0, 2000),
+    20: (0, 2000),
 }
 
 # Rangos por defecto
@@ -28,27 +28,27 @@ defaultLimits = {
     16: (0, 65000),
     17: (0, 65000),
     18: (0, 65000),
-    19: (0, 255),
-    20: (0, 255),
+    19: (0, 1023),
+    20: (0, 1023),
 }
 
 event_mappings = {
-    ecodes.BTN_NORTH: 1,
-    ecodes.BTN_SOUTH: 2,
+    ecodes.BTN_SOUTH: 1,
+    ecodes.BTN_NORTH: 2,
     ecodes.BTN_WEST: 3,
-    ecodes.BTN_EAST: 4,
-    ecodes.ABS_HAT0Y: {5: 1, 6: -1},
-    ecodes.ABS_HAT0X: {7: 1, 8: -1},
-    ecodes.BTN_TL: 11,
-    ecodes.BTN_TR: 12,
-    ecodes.BTN_START: 13,
-    ecodes.BTN_SELECT: 14,
-    ecodes.ABS_Z: {15: ()},
-    ecodes.ABS_RZ: {16: ()},
-    ecodes.ABS_X: {17: ()},
-    ecodes.ABS_Y: {18: ()},
-    ecodes.ABS_GAS: {19: ()},
-    ecodes.ABS_BRAKE: {20: ()}
+    ecodes.BTN_EAST: 4, 
+    #ecodes.ABS_HAT0Y: {5: -1, 6: 1},
+    #ecodes.ABS_HAT0X: {7: -1, 8: 1},
+    ecodes.BTN_TL: 11, # gatillo izquierdo SUPERIOR
+    ecodes.BTN_TR: 12, # gatillo derecho SUPERIOR
+    ecodes.BTN_START: 13, # botón START
+    ecodes.BTN_SELECT: 14, # botón SELECT
+    ecodes.ABS_Z: {15: ()}, # joystick izquierdo arriba-abajo
+    ecodes.ABS_RZ: {16: ()}, # joystick izquierdo izquierda-derecha
+    ecodes.ABS_X: {17: ()}, # joystick derecho arriba-abajo
+    ecodes.ABS_Y: {18: ()}, # joystick derecho izquierda-derecha
+    ecodes.ABS_GAS: {19: ()}, # gatillo izquierdo
+    ecodes.ABS_BRAKE: {20: ()} # gatillo derecho
 }
 def controllerListener(event):
     if event.type == ecodes.EV_KEY or event.type == ecodes.EV_ABS:
@@ -56,16 +56,15 @@ def controllerListener(event):
         if event.type == ecodes.EV_KEY:
             if event.value == 1:  # Solo cuando se presionan los botones
                 input_data = [event_mappings.get(event.code), 1]
-                
+
+        # si el evento es un evento absoluto y el valor no es nulo(joistick o gatillos o cruz)
         elif event.type == ecodes.EV_ABS and event.value is not None:
             input_data = event_mappings.get(event.code)
+            #print(event.value)
             if input_data:
                 index = list(input_data.keys())[0]
                 input_data = [index,event.value] 
-                if newLimits.get(index):
-                    input_data[1] = np.interp(event.value, defaultLimits[index], newLimits[index])
-                elif event.value == 0 :
-                    input_data = None
-                    
+                input_data[1] =  np.interp(event.value, defaultLimits[index], newLimits[index]).astype(int)
+            
         return input_data
     return None
