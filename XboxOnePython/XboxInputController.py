@@ -1,8 +1,8 @@
 import evdev
 from evdev import ecodes
+import numpy as np
 
-""" encontrar el dispositivo de entrada del control de Xbox """
-def findBluetoothControll():
+def findBluetoothController():
     """Encuentra el dispositivo de entrada del control de Xbox."""
     devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
 
@@ -12,111 +12,60 @@ def findBluetoothControll():
 
     return None
 
+# Define los rangos para los ejes analógicos
+newLimits = {
+    15: (0, 2000),
+    16: (0, 2000),
+    17: (0, 2000),
+    18: (0, 2000),
+    19: (0, 255),
+    20: (0, 255),
+}
 
-""" tipos de entradas del control de Xbox """
-def findButtonXYAB(event):
-    if event.type == ecodes.EV_KEY:
-        if event.code == ecodes.BTN_NORTH and event.value == 1:
-            return ["Y", event.value]
-        elif event.code == ecodes.BTN_SOUTH and event.value == 1:
-            return ["A", event.value]
-        elif event.code == ecodes.BTN_WEST and event.value == 1:
-            return ["X", event.value]
-        elif event.code == ecodes.BTN_EAST and event.value == 1:
-            return ["B", event.value]
-        else:
-            return None
-        
-def findButtonDPAD(event):
-    if event.type == ecodes.EV_ABS:
-        if event.code == ecodes.ABS_HAT0Y:
-            if event.value == 1:
-                return ["DPAD_DOWN", 4]
-            elif event.value == -1:
-                return ["DPAD_UP", 6]
-            else:
-                return None
-        elif event.code == ecodes.ABS_HAT0X:
-            if event.value == 1:
-                return ["DPAD_RIGHT", 7]
-            elif event.value == -1:
-                return ["DPAD_LEFT", 5]
-            else:
-                return None
+# Rangos por defecto
+defaultLimits = {
+    15: (0, 65000),
+    16: (0, 65000),
+    17: (0, 65000),
+    18: (0, 65000),
+    19: (0, 255),
+    20: (0, 255),
+}
 
-def findButtonLTRT(event):
-    if event.type == ecodes.EV_ABS:
-        if event.code == ecodes.ABS_BRAKE:
-            return ["LT", event.value]
-        elif event.code == ecodes.ABS_GAS:
-            return ["RT", event.value]
-        else:
-            return None
-            
-def findButtonLBRB(event):
-    if event.type == ecodes.EV_KEY:
-        if event.code == ecodes.BTN_TL and event.value == 1:
-            return ["LB", event.value]
-        elif event.code == ecodes.BTN_TR and event.value == 1:
-            return ["RB", event.value]
-        else:
-            return None
-        
-def findButtonStartBack(event):
-    if event.type == ecodes.EV_KEY:
-        if event.code == ecodes.BTN_START and event.value == 1:
-            return ["START", event.value]
-        elif event.code == ecodes.BTN_SELECT and event.value == 1:
-            return ["BACK", event.value]
-        else:
-            return None
-        
-def findRightJoystick(event):
-    if event.type == ecodes.EV_ABS:
-        if event.code == ecodes.ABS_Z:
-            return ["RIGHT_JRD", event.value]
-        elif event.code == ecodes.ABS_RZ:
-            return ["RIGHT_JLR", event.value]
-        else:
-            return None
-def findLeftJoystick(event):
-    if event.type == ecodes.EV_ABS:
-        if event.code == ecodes.ABS_X:
-            return ["LEFT_JRD", event.value]
-        elif event.code == ecodes.ABS_Y:
-            return ["LEFT_JLF", event.value]
-        else:
-            return None
-        
-
+event_mappings = {
+    ecodes.BTN_NORTH: 1,
+    ecodes.BTN_SOUTH: 2,
+    ecodes.BTN_WEST: 3,
+    ecodes.BTN_EAST: 4,
+    ecodes.ABS_HAT0Y: {5: 1, 6: -1},
+    ecodes.ABS_HAT0X: {7: 1, 8: -1},
+    ecodes.BTN_TL: 11,
+    ecodes.BTN_TR: 12,
+    ecodes.BTN_START: 13,
+    ecodes.BTN_SELECT: 14,
+    ecodes.ABS_Z: {15: ()},
+    ecodes.ABS_RZ: {16: ()},
+    ecodes.ABS_X: {17: ()},
+    ecodes.ABS_Y: {18: ()},
+    ecodes.ABS_GAS: {19: ()},
+    ecodes.ABS_BRAKE: {20: ()}
+}
 def controllerListener(event):
-        aux = findButtonXYAB(event)
-        if aux != None:
-            #print(aux)
-            return aux
-        aux = findButtonDPAD(event)
-        if aux != None:
-            #print(aux)
-            return aux
-        aux = findButtonLTRT(event)
-        if aux != None:
-            #print(aux)
-            return aux
-        aux = findButtonLBRB(event)
-        if aux != None:
-            #print(aux)
-            return aux
-        aux = findButtonStartBack(event)
-        if aux != None:
-            #print(aux)
-            return aux
-        aux = findRightJoystick(event)
-        if aux != None:
-            #print(aux)
-            return aux
-        aux = findLeftJoystick(event)
-        if aux != None:
-            #print(aux)
-            return aux
-        
-        return None
+    if event.type == ecodes.EV_KEY or event.type == ecodes.EV_ABS:
+        input_data = None
+        if event.type == ecodes.EV_KEY:
+            if event.value == 1:  # Solo cuando se presionan los botones
+                input_data = [event_mappings.get(event.code), 1]
+                
+        elif event.type == ecodes.EV_ABS and event.value is not None:
+            input_data = event_mappings.get(event.code)
+            if input_data:
+                index = list(input_data.keys())[0]
+                input_data = [index,event.value] 
+                if newLimits.get(index):
+                    input_data[1] = np.interp(event.value, defaultLimits[index], newLimits[index])
+                elif event.value == 0 :
+                    input_data = None
+                    
+        return input_data
+    return None
