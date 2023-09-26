@@ -31,11 +31,10 @@ def XboxInputController(device):
                 print("Cola de datos llena, espera para enviar más datos")
 
 def main():
-    try:
-        device = xic.findBluetoothController()
-        XboxInputController(device)
-    except Exception as e:
-        print(f"Error en la lectura del control de Xbox: {e}")
+    
+    device = xic.findBluetoothController()
+    XboxInputController(device)
+   
 
 if __name__ == "__main__":
     main()

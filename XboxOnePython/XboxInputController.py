@@ -2,22 +2,21 @@ import evdev
 from evdev import ecodes
 import numpy as np
 
-def findBluetoothController():
-    """Encuentra el dispositivo de entrada del control de Xbox."""
-    devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
 
-    for device in devices:
-        if "Xbox" in device.name:
-            return device
 
-    return None
+
+CENTER_TOLERANCE = 500
+STICK_MAX = 65536
+
+STIK_MAX_SIMULATED = STICK_MAX/2
+
 
 # Define los rangos para los ejes analógicos
 newLimits = {
-    15: (-32500,32500),
-    16: (-32500,32500),
-    17: (-32500,32500),
-    18: (-32500,32500),
+    15: (-STIK_MAX_SIMULATED,STIK_MAX_SIMULATED),
+    16: (-STIK_MAX_SIMULATED,STIK_MAX_SIMULATED),
+    17: (-STIK_MAX_SIMULATED,STIK_MAX_SIMULATED),
+    18: (-STIK_MAX_SIMULATED,STIK_MAX_SIMULATED),
     19: (0, 2000),
     20: (0, 2000),
 }
@@ -50,6 +49,19 @@ event_mappings = {
     ecodes.ABS_GAS: {19: ()}, # gatillo izquierdo
     ecodes.ABS_BRAKE: {20: ()} # gatillo derecho
 }
+
+
+def findBluetoothController():
+    """Encuentra el dispositivo de entrada del control de Xbox."""
+    devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
+
+    for device in devices:
+        if "Xbox" in device.name:
+            return device
+
+    return None
+
+
 def controllerListener(event):
     if event.type == ecodes.EV_KEY or event.type == ecodes.EV_ABS:
         input_data = None
@@ -59,12 +71,13 @@ def controllerListener(event):
 
         # si el evento es un evento absoluto y el valor no es nulo(joistick o gatillos o cruz)
         elif event.type == ecodes.EV_ABS and event.value is not None:
+            print(event.value)
             input_data = event_mappings.get(event.code)
-            #print(event.value)
             if input_data:
                 index = list(input_data.keys())[0]
                 input_data = [index,event.value] 
                 input_data[1] =  np.interp(event.value, defaultLimits[index], newLimits[index]).astype(int)
+        print(event.value)
             
         return input_data
     return None
