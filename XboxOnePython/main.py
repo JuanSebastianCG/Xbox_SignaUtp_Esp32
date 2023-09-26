@@ -13,7 +13,7 @@ def send_data_Server():
     while True:
         input = data_queue.get()
         if input is not None:
-            wpeUDP.send_data_to_esp32(input[0], input[1])
+            wpeUDP.send_data_to_esp32(input)
         data_queue.task_done()
 
 
