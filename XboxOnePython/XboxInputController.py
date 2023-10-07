@@ -27,8 +27,17 @@ last = center.copy()
 
 # Encuentra el dispositivo de entrada del control de Xbox
 def findBluetoothController():
-    devices = [InputDevice(fn) for fn in list_devices()]
-    return next((device for device in devices if "Xbox" in device.name), None)
+    device = None
+    while device is None:
+        try:
+            for fn in list_devices():
+                device = InputDevice(fn)
+                if "Xbox" in device.name:
+                    print("Control de Xbox encontrado")
+                    break
+        except OSError:
+            print("No se encontró el control de Xbox, intentando de nuevo...")
+    return device
 
 # Normaliza un valor del eje
 def normalize_axis(axis_value):
@@ -60,9 +69,9 @@ def controllerListener(event):
                     y = normalize_axis(last[16]) * -1 if axis in [15, 16] else normalize_axis(last[18]) * -1
                     x = 0 if abs(x) <= CENTER_TOLERANCE / (STICK_OUTPUT) else x
                     y = 0 if abs(y) <= CENTER_TOLERANCE / (STICK_OUTPUT) else y
-                    #input_data = [axis, (int(np.interp(x, (-1, 1), (-STICK_OUTPUT, STICK_OUTPUT))), int(np.interp(y, (-1, 1), (-STICK_OUTPUT, STICK_OUTPUT))))]
-                    polar = polarCoordinates(x, y)
-                    input_data = [axis,(polar[0],polar[1])]
+                    input_data = [axis, (int(np.interp(x, (-1, 1), (-STICK_OUTPUT, STICK_OUTPUT))), int(np.interp(y, (-1, 1), (-STICK_OUTPUT, STICK_OUTPUT))))]
+                    #polar = polarCoordinates(x, y)
+                    #input_data = [axis,(polar[0],polar[1])]
                 elif axis in [19, 20]:
                     input_data = [axis, (event.value,0)]
         return input_data
