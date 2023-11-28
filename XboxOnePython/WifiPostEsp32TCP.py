@@ -3,6 +3,7 @@ import requests
 # Dirección IP y puerto del ESP32
 #esp32_ip = "192.168.20.72"
 esp32_ip = "192.168.154.89"
+esp32_ip = "192.168.106.169"
 esp32_port = 80
 
 

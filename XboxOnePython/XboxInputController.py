@@ -4,7 +4,7 @@ import numpy as np
 
 CENTER_TOLERANCE = 2000
 STICK_MAX = 65536
-STICK_OUTPUT= STICK_MAX/2
+STICK_OUTPUT= STICK_MAX/2-500
 
 event_mappings = {
     ecodes.BTN_SOUTH: 1,
