@@ -2,8 +2,7 @@ import socket
 import struct
 
 # Dirección IP y puerto del ESP32
-esp32_ip = "192.168.37.102"
-
+esp32_ip = "192.168.8.102"
 esp32_port = 80
 
 def send_data_to_esp32(data):
